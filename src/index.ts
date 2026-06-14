@@ -153,6 +153,31 @@ async function startSession(tenantId: string, force = false): Promise<Session> {
 
   socket.ev.on('creds.update', saveCreds);
 
+  socket.ev.on('messages.upsert', async (m) => {
+    if (m.type === 'notify') {
+      for (const msg of m.messages) {
+        if (!msg.key.fromMe && msg.message) {
+          const from = msg.key.remoteJid;
+          if (from) {
+            const text = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
+            if (text) {
+              logger.info(`Session ${tenantId}: Incoming message from ${from}: ${text}`);
+              triggerWebhook(tenantId, {
+                event: 'message_received',
+                from: from.split('@')[0],
+                senderName: msg.pushName || "",
+                message: text,
+                messageId: msg.key.id
+              }).catch(err => {
+                logger.error({ err }, `Failed to forward incoming message to webhook for tenant ${tenantId}`);
+              });
+            }
+          }
+        }
+      }
+    }
+  });
+
   return sessionObj;
 }
 
