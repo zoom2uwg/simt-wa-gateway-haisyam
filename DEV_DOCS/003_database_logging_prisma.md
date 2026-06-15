@@ -97,11 +97,70 @@ Tambah script:
 
 ## Rekomendasi Cloud Database (Free Tier)
 
-| Platform | Free Tier | Keunggulan |
+| Platform | Free Tier | Keunggulan | Native Integration |
+|---|---|---|---|
+| **Neon** | 512MB, serverless | Auto-suspend, connection pooling, DB branching | ✅ Vercel Storage Marketplace (1-click) |
+| **Supabase** | 500MB, 2 projects | Dashboard UI lengkap, realtime, auth | ✅ Vercel & Netlify Integration |
+| **Aiven** | Trial 30 hari | Enterprise-grade, multi-cloud | ❌ Manual env var |
+
+---
+
+## Native Platform Integrations
+
+### Vercel (Direkomendasikan)
+
+```
+Vercel Dashboard → Storage → Create → Neon
+→ DATABASE_URL otomatis di-inject ke project environment
+→ Tidak perlu copy-paste manual
+```
+
+```
+Vercel Dashboard → Integrations → Supabase
+→ SUPABASE_URL, DATABASE_URL otomatis di-inject
+```
+
+### Netlify
+
+```
+Netlify Dashboard → Extensions → Neon
+→ DATABASE_URL otomatis tersedia di build & function environment
+```
+
+> [!IMPORTANT]
+> **Neon membutuhkan DUA URL** untuk Prisma:
+> - `DATABASE_URL` — Pooled connection (untuk runtime/query)
+> - `DIRECT_URL` — Direct connection (untuk `prisma migrate`)
+>
+> Schema Prisma akan dikonfigurasi:
+> ```prisma
+> datasource db {
+>   provider  = "postgresql"
+>   url       = env("DATABASE_URL")   // pooled - runtime
+>   directUrl = env("DIRECT_URL")     // direct - migration
+> }
+> ```
+
+> [!TIP]
+> Untuk **Supabase**, format URL-nya:
+> - `DATABASE_URL` → connection pooler URL (port 6543)
+> - `DIRECT_URL` → direct URL (port 5432)
+
+---
+
+## package.json Scripts (Sudah Disiapkan)
+
+Script berikut **sudah ditambahkan** ke `package.json` dan siap digunakan setelah Prisma diinstall:
+
+| Script | Perintah | Fungsi |
 |---|---|---|
-| **Supabase** | 500MB, 2 projects | Dashboard UI lengkap, realtime |
-| **Neon** | 512MB, serverless | Optimized untuk Vercel |
-| **Aiven** | Trial 30 hari | Enterprise-grade |
+| `postinstall` | `npx prisma generate` | Auto-run saat `npm install` (Vercel/Netlify/CI) |
+| `prebuild` | `npx prisma generate` | Auto-run sebelum `npm run build` |
+| `db:migrate` | `prisma migrate deploy` | Jalankan migration di production |
+| `db:migrate:dev` | `prisma migrate dev` | Buat migration baru di development |
+| `db:studio` | `prisma studio` | Buka GUI database browser |
+| `db:generate` | `prisma generate` | Regenerate Prisma Client manual |
+| `db:reset` | `prisma migrate reset` | Reset database (dev only!) |
 
 ---
 

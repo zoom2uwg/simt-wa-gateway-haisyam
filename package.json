@@ -4,9 +4,16 @@
   "description": "WhatsApp Multi-Session Gateway based on Baileys and Express",
   "main": "dist/index.js",
   "scripts": {
+    "postinstall": "npx prisma generate --no-engine 2>nul || exit 0",
+    "prebuild": "npx prisma generate --no-engine 2>nul || exit 0",
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts"
+    "dev": "ts-node src/index.ts",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:generate": "prisma generate",
+    "db:reset": "prisma migrate reset"
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^6.6.0",
